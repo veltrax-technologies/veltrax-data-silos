@@ -38,6 +38,10 @@
                 "0%": { opacity: 0, transform: "translateY(12px)" },
                 "100%": { opacity: 1, transform: "translateY(0)" },
               },
+              glow: {
+                "0%": { boxShadow: "0 0 0 rgba(111,66,193,0)" },
+                "100%": { boxShadow: "0 0 0 rgba(111,66,193,0)" },
+              }
             },
             animation: {
               pulseDot: "pulseDot 1.6s ease-in-out infinite",
@@ -45,6 +49,7 @@
             },
             boxShadow: {
               vx: "0 10px 30px rgba(0,0,0,.35)",
+              focus: "0 0 0 2px rgba(111,66,193,.35)",
             },
           },
         },
@@ -54,6 +59,8 @@
     <style>
       .packet { offset-path: path(var(--p)); offset-rotate: 0deg; animation: flow var(--speed, 3500ms) linear infinite; }
       .legend-dot{ width:10px; height:10px; border-radius:999px; display:inline-block; margin-right:.5rem }
+      .panel-active { opacity: 1; filter: none; box-shadow: 0 0 0 1px rgba(111,66,193,.35) inset, 0 0 24px rgba(111,66,193,.15); }
+      .panel-inactive { opacity: .35; filter: grayscale(.2) saturate(.6); }
       ::-webkit-scrollbar{ height: 10px; width: 10px; }
       ::-webkit-scrollbar-thumb{ background:#2C2F36; border-radius:999px; }
       ::-webkit-scrollbar-track{ background:#131417; }
@@ -123,62 +130,71 @@
         </div>
       </section>
 
-      <!-- Visualization -->
+      <!-- Visualization: two separate panels side-by-side -->
       <section class="lg:col-span-8">
         <div class="rounded-2xl border border-vx-border bg-vx-surface overflow-hidden shadow-sm">
           <div class="p-6 border-b border-vx-border/60 flex items-center justify-between">
-            <h2 class="text-xl font-semibold" id="vizTitle">Veltrax Unified Mapping</h2>
-            <div class="text-sm text-vx-muted" id="vizSubtitle">Connectors → Unified Model → Products & Insights</div>
+            <h2 class="text-xl font-semibold">Architectures Compared</h2>
+            <div class="text-sm text-vx-muted">Left: Cloud / siloed • Right: Veltrax unified</div>
           </div>
-          <div class="p-6">
-            <div class="grid grid-cols-1 gap-6">
-              <!-- Mapping diagram: left connectors → center unified model → right products -->
-              <svg viewBox="0 0 920 360" class="w-full">
-                <!-- Left: Connectors (dynamic labels rendered by JS) -->
-                <g id="leftConnectors" font-size="12" fill="#9AA0AE" stroke="#2C2F36" stroke-width="1.2"></g>
 
-                <!-- Center: Veltrax Unified Model (fixed groups) -->
-                <g id="unifiedModel">
-                  <rect x="360" y="24" width="200" height="312" rx="16" fill="#0f1115" stroke="#6F42C1" stroke-width="2.2" />
-                  <text x="460" y="48" text-anchor="middle" fill="#E6E7EB" font-size="13">Veltrax Unified Model</text>
-                  <!-- Buckets inside unified model -->
+          <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Cloud Silos Panel -->
+            <div id="panelCloud" class="rounded-xl border border-vx-border/60 p-4 bg-black/20 transition-all">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="font-semibold">Cloud / On‑prem Silos</h3>
+                <span class="text-xs text-vx-muted">Before</span>
+              </div>
+              <svg viewBox="0 0 520 320" class="w-full mt-2">
+                <g id="cloudVendors" fill="none" stroke="#2C2F36" stroke-width="1.2"></g>
+                <!-- No interconnections on purpose to highlight silos -->
+              </svg>
+              <p class="text-xs text-vx-muted mt-2">Disconnected systems. Joins happen downstream with duplicate logic and slow cross‑system queries.</p>
+            </div>
+
+            <!-- Veltrax Unified Panel -->
+            <div id="panelUnified" class="rounded-xl border border-vx-border/60 p-4 bg-black/20 transition-all">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="font-semibold">Veltrax Unified Mapping</h3>
+                <span class="text-xs text-vx-muted">After</span>
+              </div>
+              <svg viewBox="0 0 520 320" class="w-full mt-2">
+                <!-- Left: Connectors (dynamic) -->
+                <g id="leftConnectors" font-size="12" fill="#9AA0AE" stroke="#2C2F36" stroke-width="1.2"></g>
+                <!-- Center: Unified Model -->
+                <g>
+                  <rect x="220" y="24" width="200" height="272" rx="16" fill="#0f1115" stroke="#6F42C1" stroke-width="2.2" />
+                  <text x="320" y="48" text-anchor="middle" fill="#E6E7EB" font-size="13">Veltrax Unified Model</text>
                   <g fill="none" stroke="#2C2F36" stroke-width="1.2">
-                    <rect x="380" y="70" width="160" height="42" rx="8" />
-                    <rect x="380" y="120" width="160" height="42" rx="8" />
-                    <rect x="380" y="170" width="160" height="42" rx="8" />
-                    <rect x="380" y="220" width="160" height="42" rx="8" />
-                    <rect x="380" y="270" width="160" height="42" rx="8" />
+                    <rect x="240" y="70" width="160" height="38" rx="8" />
+                    <rect x="240" y="118" width="160" height="38" rx="8" />
+                    <rect x="240" y="166" width="160" height="38" rx="8" />
+                    <rect x="240" y="214" width="160" height="38" rx="8" />
                   </g>
                   <g font-size="11" fill="#9AA0AE">
-                    <text x="460" y="95" text-anchor="middle" id="u1">Entities</text>
-                    <text x="460" y="145" text-anchor="middle" id="u2">Transactions</text>
-                    <text x="460" y="195" text-anchor="middle" id="u3">Operations</text>
-                    <text x="460" y="245" text-anchor="middle" id="u4">Risk / Fraud</text>
-                    <text x="460" y="295" text-anchor="middle" id="u5">KPI / ROI</text>
+                    <text x="320" y="94" text-anchor="middle" id="u1">Entities</text>
+                    <text x="320" y="142" text-anchor="middle" id="u2">Transactions</text>
+                    <text x="320" y="190" text-anchor="middle" id="u3">Operations</text>
+                    <text x="320" y="238" text-anchor="middle" id="u4">Risk / KPI</text>
                   </g>
                 </g>
-
                 <!-- Right: Products / Insights -->
                 <g id="rightProducts" font-size="12" fill="#9AA0AE" stroke="#2C2F36" stroke-width="1.2">
-                  <rect x="680" y="70" width="200" height="42" rx="8" />
-                  <rect x="680" y="120" width="200" height="42" rx="8" />
-                  <rect x="680" y="170" width="200" height="42" rx="8" />
-                  <rect x="680" y="220" width="200" height="42" rx="8" />
-                  <text x="780" y="95" text-anchor="middle" id="p1">Dashboards</text>
-                  <text x="780" y="145" text-anchor="middle" id="p2">AI Models</text>
-                  <text x="780" y="195" text-anchor="middle" id="p3">Reports / Exports</text>
-                  <text x="780" y="245" text-anchor="middle" id="p4">APIs / Automations</text>
+                  <rect x="440" y="70" width="70" height="38" rx="8" />
+                  <rect x="440" y="118" width="70" height="38" rx="8" />
+                  <rect x="440" y="166" width="70" height="38" rx="8" />
+                  <rect x="440" y="214" width="70" height="38" rx="8" />
+                  <text x="475" y="94" text-anchor="middle" id="p1">KPIs</text>
+                  <text x="475" y="142" text-anchor="middle" id="p2">AI</text>
+                  <text x="475" y="190" text-anchor="middle" id="p3">Reports</text>
+                  <text x="475" y="238" text-anchor="middle" id="p4">APIs</text>
                 </g>
-
-                <!-- Dynamic flow paths -->
                 <g id="flows" stroke="#6F42C1" stroke-width="2" fill="none"></g>
                 <g id="packets"></g>
               </svg>
-
-              <!-- Legend -->
-              <div class="text-xs text-vx-muted flex flex-wrap items-center gap-4">
+              <div class="text-xs text-vx-muted flex flex-wrap items-center gap-4 mt-2">
                 <div><span class="legend-dot" style="background:#6F42C1"></span>Unified stream</div>
-                <div><span class="legend-dot" style="background:#22c55e"></span>Validated & normalized</div>
+                <div><span class="legend-dot" style="background:#22c55e"></span>Validated → products</div>
                 <div><span class="legend-dot" style="background:#9AA0AE"></span>Source connectors</div>
               </div>
             </div>
@@ -199,7 +215,7 @@
       <div class="mt-4 text-xs text-vx-muted"><span class="opacity-80">Note:</span> Simulated metrics illustrate the relative impact of a unified schema vs siloed feeds.</div>
     </section>
 
-    <!-- FOOTER -->
+    <!-- FOOTER (clean, no product links) -->
     <footer class="border-t border-vx-border/70 py-10">
       <div class="max-w-7xl mx-auto px-6 md:px-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div>
@@ -214,19 +230,12 @@
           <p class="text-sm text-vx-muted mt-3 max-w-xl">Local‑first. Private by default. Built for operators who need provable ROI.</p>
           <a class="text-vx-accent hover:underline mt-2 block" href="https://www.linkedin.com/company/veltrax-technologies/?viewAsMember=true" target="_blank" rel="noopener">Connect with us on LinkedIn</a>
         </div>
-        <div class="text-sm text-vx-muted/80">
-          <a href="#" class="hover:text-white">View Finex</a>
-          <span class="mx-2">•</span>
-          <a href="#" class="hover:text-white">View Échelon</a>
-          <span class="mx-2">•</span>
-          <a href="#" class="hover:text-white">View Verdict</a>
-        </div>
       </div>
     </footer>
 
     <!-- SCRIPT -->
     <script>
-      // ── Product presets → source lists + mapping labels
+      // Presets
       const PRESETS = {
         finex: {
           name: 'Finex (Banking)',
@@ -237,8 +246,8 @@
             { key: 'crm', name: 'CRM (Salesforce)', baseRps: 120, roi: 1.1 },
             { key: 'files', name: 'CSV / Excel / SFTP drops', baseRps: 90, roi: 0.9 },
           ],
-          ulabels: ['Customers/Accounts','Transactions','Operations','Fraud/Risk','KPI/ROI'],
-          plabels: ['Executive KPIs','Fraud Engine','Reg/Reports','Profitability Advisor']
+          ulabels: ['Customers/Accounts','Transactions','Operations','Risk / KPI'],
+          plabels: ['KPIs','Fraud Engine','Reports','APIs']
         },
         echelon: {
           name: 'Échelon (Retail)',
@@ -249,8 +258,8 @@
             { key: 'crm', name: 'CRM / Loyalty', baseRps: 140, roi: 1.1 },
             { key: 'files', name: 'CSV / Excel / Local DB', baseRps: 80, roi: 0.9 },
           ],
-          ulabels: ['Products/Stores','Sales/Orders','Ops/Staffing','Shrink/Risk','KPI/ROI'],
-          plabels: ['Ops KPIs','Demand / Pricing AI','Reports','Action Center']
+          ulabels: ['Products/Stores','Sales/Orders','Ops/Staffing','Shrink / KPI'],
+          plabels: ['KPIs','Demand AI','Reports','Action API']
         },
         verdict: {
           name: 'Verdict (Legal)',
@@ -261,8 +270,8 @@
             { key: 'crm', name: 'CRM / Matters', baseRps: 100, roi: 1.0 },
             { key: 'files', name: 'PDF / Email / Local DB', baseRps: 70, roi: 0.9 },
           ],
-          ulabels: ['Clients/Matters','Docs/Exhibits','Hearings/Deadlines','Risk/Compliance','KPI/ROI'],
-          plabels: ['Case KPIs','LLM Summaries','Reports','Automation Hooks']
+          ulabels: ['Clients/Matters','Docs/Exhibits','Deadlines','Risk / KPI'],
+          plabels: ['Case KPIs','LLM','Reports','Hooks']
         },
       };
 
@@ -274,12 +283,7 @@
       const DOLLAR_PER_1K_ROWS = 4.2;
       const ROI_MULTIPLIER = 1.0;
 
-      const state = {
-        mode: 'unified',
-        volume: 1.0,
-        product: 'finex',
-        enabled: new Set(),
-      };
+      const state = { mode: 'unified', volume: 1.0, product: 'finex', enabled: new Set() };
 
       const $modeCloud = document.getElementById('modeCloud');
       const $modeUnified = document.getElementById('modeUnified');
@@ -289,12 +293,14 @@
       const $metrics = document.getElementById('metrics');
       const $why = document.getElementById('why');
 
-      // SVG groups
+      const $panelCloud = document.getElementById('panelCloud');
+      const $panelUnified = document.getElementById('panelUnified');
+
       const $left = () => document.getElementById('leftConnectors');
       const $flows = () => document.getElementById('flows');
       const $packets = () => document.getElementById('packets');
+      const $vendors = () => document.getElementById('cloudVendors');
 
-      // Helpers
       function activePreset(){ return PRESETS[state.product]; }
 
       function buildSources(){
@@ -311,9 +317,7 @@
                 <span class="ml-2">${s.name}</span>
               </label>
             </div>
-            <div class="col-span-2 text-right">
-              <span class="text-xs text-vx-muted">~${s.baseRps.toLocaleString()} rows/s</span>
-            </div>`;
+            <div class="col-span-2 text-right"><span class="text-xs text-vx-muted">~${s.baseRps.toLocaleString()} rows/s</span></div>`;
           const cb = row.querySelector('input');
           const dot = row.querySelector('.dot');
           cb.addEventListener('change', (e)=>{
@@ -335,12 +339,12 @@
           { label: 'AI decision latency', value: `${Math.round(aiLatency)} ms` },
           { label: 'Projected daily ROI', value: `$${Math.round(dailyROI).toLocaleString()}` },
         ];
-        for (const m of items){
+        items.forEach(m=>{
           const card = document.createElement('div');
           card.className = 'rounded-xl border border-vx-border/60 bg-black/20 p-4';
           card.innerHTML = `<div class="text-xs text-vx-muted">${m.label}</div><div class="mt-1 text-xl font-semibold">${m.value}</div>`;
           $metrics.appendChild(card);
-        }
+        });
       }
 
       function totals(){
@@ -357,79 +361,88 @@
         return { rps, aiLatency, batchLatency, dailyROI };
       }
 
-      function drawMapping(){
+      function drawCloudSilos(){
+        const g = $vendors(); g.innerHTML = '';
+        const cols = [20, 200, 380];
+        const rows = [30, 100, 170, 240];
+        const labels = ['AWS','Azure','GCP','DB','CRM','ERP','Files','Payments'];
+        let i=0;
+        rows.forEach(y=>{
+          cols.forEach(x=>{
+            if (i>=labels.length) return; const w=92, h=44;
+            const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+            r.setAttribute('x', x); r.setAttribute('y', y); r.setAttribute('width', w); r.setAttribute('height', h); r.setAttribute('rx', 10);
+            r.setAttribute('fill', '#0f1115'); r.setAttribute('stroke', '#2C2F36');
+            const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+            t.setAttribute('x', x + w/2); t.setAttribute('y', y + 26); t.setAttribute('text-anchor','middle'); t.setAttribute('fill','#9AA0AE'); t.textContent = labels[i++];
+            g.appendChild(r); g.appendChild(t);
+          });
+        });
+        // no connecting lines, by design
+      }
+
+      function drawUnified(){
         // Left connectors boxes + labels
         const preset = activePreset();
-        const left = $left();
-        left.innerHTML = '';
-        const startX = 40, startY = 60, w = 220, h = 36, gap = 16;
+        const left = $left(); left.innerHTML = '';
+        const startX = 20, startY = 60, w = 180, h = 34, gap = 12;
         preset.sources.forEach((s, i)=>{
+          if (!state.enabled.has(s.key)) return;
           const y = startY + i*(h+gap);
           const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
           rect.setAttribute('x', startX); rect.setAttribute('y', y);
           rect.setAttribute('width', w); rect.setAttribute('height', h); rect.setAttribute('rx', 8);
-          rect.setAttribute('fill', '#0f1115'); rect.setAttribute('stroke', '#2C2F36'); rect.setAttribute('stroke-width','1.2');
+          rect.setAttribute('fill', '#0f1115'); rect.setAttribute('stroke', '#2C2F36');
+          rect.setAttribute('title', s.name);
           const label = document.createElementNS('http://www.w3.org/2000/svg','text');
           label.setAttribute('x', startX + w/2); label.setAttribute('y', y + 22); label.setAttribute('text-anchor','middle');
           label.setAttribute('fill','#9AA0AE'); label.textContent = s.name;
           left.appendChild(rect); left.appendChild(label);
         });
 
-        // Unified model bucket labels
-        const [u1,u2,u3,u4,u5] = activePreset().ulabels;
-        document.getElementById('u1').textContent = u1;
-        document.getElementById('u2').textContent = u2;
-        document.getElementById('u3').textContent = u3;
-        document.getElementById('u4').textContent = u4;
-        document.getElementById('u5').textContent = u5;
-
-        // Right products
+        // Right products labels
         const [p1,p2,p3,p4] = activePreset().plabels;
         document.getElementById('p1').textContent = p1;
         document.getElementById('p2').textContent = p2;
         document.getElementById('p3').textContent = p3;
         document.getElementById('p4').textContent = p4;
 
-        // Flow lines
-        const flows = $flows();
-        const packets = $packets();
-        flows.innerHTML = ''; packets.innerHTML = '';
+        // Unified bucket labels
+        const [u1,u2,u3,u4] = activePreset().ulabels;
+        document.getElementById('u1').textContent = u1;
+        document.getElementById('u2').textContent = u2;
+        document.getElementById('u3').textContent = u3;
+        document.getElementById('u4').textContent = u4;
 
-        // Map each source to an appropriate unified bucket index
-        const bucketYs = [90, 140, 190, 240, 290];
+        // Flow paths
+        const flows = $flows(); const packets = $packets();
+        flows.innerHTML=''; packets.innerHTML='';
         const mapIndex = (key)=>{
           const m = { core:0, loans:1, cards:1, crm:0, files:2, pos:1, inventory:2, ecom:1, dms:1, ecf:2, billing:2 };
-          return Math.min(m[key] ?? 2, 4);
-        }
-
-        const leftX = 260; // right edge of left boxes
-        const busX = 360;  // left edge of unified model
-
-        activePreset().sources.forEach((s, i)=>{
+          return Math.min(m[key] ?? 2, 3);
+        };
+        const leftEdge = 200; const busX = 220; const bucketYs = [90, 138, 186, 234];
+        let i=0;
+        activePreset().sources.forEach(s=>{
           if (!state.enabled.has(s.key)) return;
-          const sy = 78 + i*52; // approx center of each left rect
+          const sy = 77 + i*(46); i++;
           const by = bucketYs[mapIndex(s.key)];
-          const d = `M ${leftX} ${sy} C ${leftX+30} ${sy}, ${busX-30} ${by}, ${busX} ${by}`;
+          const d = `M ${leftEdge} ${sy} C ${leftEdge+20} ${sy}, ${busX-20} ${by}, ${busX} ${by}`;
           const path = document.createElementNS('http://www.w3.org/2000/svg','path');
           path.setAttribute('d', d); path.setAttribute('stroke','#6F42C1'); path.setAttribute('stroke-width','2.2'); path.setAttribute('fill','none');
           flows.appendChild(path);
-
-          // animated packets along the path
           const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-          g.setAttribute('class','packet');
-          g.style.setProperty('--p', `'${d}'`);
-          g.style.setProperty('--speed', `${3200 - (i%4)*250}ms`);
-          const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
-          c.setAttribute('r','4'); c.setAttribute('fill','#6F42C1'); c.setAttribute('class','animate-pulseDot');
+          g.setAttribute('class','packet'); g.style.setProperty('--p', `'${d}'`); g.style.setProperty('--speed', `${3200 - (i%4)*250}ms`);
+          const c = document.createElementNS('http://www.w3.org/2000/svg','circle'); c.setAttribute('r','4'); c.setAttribute('fill','#6F42C1'); c.setAttribute('class','animate-pulseDot');
           g.appendChild(c); packets.appendChild(g);
         });
 
-        // Outgoing unified flows to products (fixed)
+        // Outgoing to products
         const outLines = [
-          'M 540 90 C 600 90, 640 90, 680 90',
-          'M 540 190 C 600 150, 640 140, 680 140',
-          'M 540 240 C 620 220, 640 190, 680 190',
-          'M 540 290 C 640 290, 650 240, 680 240',
+          'M 400 90 C 430 90, 430 90, 440 90',
+          'M 400 138 C 430 130, 430 130, 440 138',
+          'M 400 186 C 430 180, 430 180, 440 186',
+          'M 400 234 C 430 234, 430 234, 440 234',
         ];
         outLines.forEach((d, idx)=>{
           const p = document.createElementNS('http://www.w3.org/2000/svg','path');
@@ -442,26 +455,37 @@
         });
       }
 
+      function applyPanelFocus(){
+        if (state.mode === 'cloud'){
+          $panelCloud.classList.add('panel-active');
+          $panelCloud.classList.remove('panel-inactive');
+          $panelUnified.classList.remove('panel-active');
+          $panelUnified.classList.add('panel-inactive');
+        } else {
+          $panelUnified.classList.add('panel-active');
+          $panelUnified.classList.remove('panel-inactive');
+          $panelCloud.classList.remove('panel-active');
+          $panelCloud.classList.add('panel-inactive');
+        }
+      }
+
       function render(){
-        // Toggle button states
+        // Toggles
         if (state.mode === 'cloud'){
           $modeCloud.className = 'px-4 py-2 rounded-xl border border-vx-accent bg-vx-accent text-white shadow-vx';
           $modeUnified.className = 'px-4 py-2 rounded-xl border border-vx-border bg-vx-surface shadow-sm hover:border-vx-accent/50 transition';
-          document.getElementById('vizTitle').textContent = 'Siloed Connectors';
-          document.getElementById('vizSubtitle').textContent = 'Each system merges data downstream with duplicate logic & latency';
           document.getElementById('why').classList.add('hidden');
         } else {
           $modeUnified.className = 'px-4 py-2 rounded-xl border border-vx-accent bg-vx-accent text-white shadow-vx';
           $modeCloud.className = 'px-4 py-2 rounded-xl border border-vx-border bg-vx-surface shadow-sm hover:border-vx-accent/50 transition';
-          document.getElementById('vizTitle').textContent = 'Veltrax Unified Mapping';
-          document.getElementById('vizSubtitle').textContent = 'Connectors → Unified Model → Products & Insights';
           document.getElementById('why').classList.remove('hidden');
         }
-
         // Metrics
         buildMetrics(totals());
-        // Diagram
-        drawMapping();
+        // Diagrams
+        drawCloudSilos();
+        drawUnified();
+        applyPanelFocus();
       }
 
       function bindProductButtons(){
