@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Veltrax | From Data Silos to Unified Intelligence</title>
+    <meta name="description" content="Interactive simulator that contrasts fragmented cloud data silos with the Veltrax unified, on‑prem AI pipeline." />
+
+    <!-- Tailwind (CDN build) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              vx: {
+                bg: "#0f1115",
+                surface: "#151822",
+                text: "#E6E7EB",
+                muted: "#9AA0AE",
+                border: "#2C2F36",
+                accent: "#6F42C1", // Veltrax purple accent
+                good: "#22c55e",
+                warn: "#f59e0b",
+                bad: "#ef4444",
+              },
+            },
+            boxShadow: {
+              vx: "0 10px 30px rgba(0,0,0,.35)",
+            },
+            keyframes: {
+              pulseDot: {
+                "0%, 100%": { transform: "scale(1)", opacity: 1 },
+                "50%": { transform: "scale(0.7)", opacity: 0.5 },
+              },
+              flow: {
+                "0%": { offsetDistance: "0%" },
+                "100%": { offsetDistance: "100%" },
+              },
+              fadeInUp: {
+                "0%": { opacity: 0, transform: "translateY(12px)" },
+                "100%": { opacity: 1, transform: "translateY(0)" },
+              },
+            },
+            animation: {
+              pulseDot: "pulseDot 1.6s ease-in-out infinite",
+              fadeInUp: "fadeInUp .5s ease-out both",
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      /* ── 0) SVG motion paths for animated data packets ───────────── */
+      .packet {
+        offset-path: path(var(--p));
+        offset-rotate: 0deg;
+        animation: flow var(--speed, 4000ms) linear infinite;
+      }
+      .packet.slow { filter: saturate(0.75) brightness(0.9); }
+      .packet.fast { filter: saturate(1.2) brightness(1.1); }
+
+      /* Scrollbar subtle */
+      ::-webkit-scrollbar{ height: 10px; width: 10px; }
+      ::-webkit-scrollbar-thumb{ background:#2C2F36; border-radius:999px; }
+      ::-webkit-scrollbar-track{ background:#131417; }
+    </style>
+  </head>
+  <body class="bg-vx-bg text-vx-text selection:bg-vx-accent/30 selection:text-white">
+    <!-- ─────────────────────────── 1) HERO / INTRO ─────────────────────────── -->
+    <header class="relative overflow-hidden border-b border-vx-border/70 bg-gradient-to-b from-black/40 to-vx-bg">
+      <div class="absolute inset-0 pointer-events-none"
+           style="background: radial-gradient(1200px 400px at 50% -10%, rgba(111,66,193,.25), transparent 60%);"></div>
+
+      <div class="max-w-7xl mx-auto px-6 md:px-10 py-16 md:py-24">
+        <div class="flex items-center gap-3 opacity-90 animate-fadeInUp">
+          <!-- Minimal Veltrax wordmark (inline SVG) -->
+          <svg width="36" height="36" viewBox="0 0 64 64" fill="none" class="shrink-0">
+            <rect x="6" y="10" width="52" height="12" rx="6" fill="white" />
+            <rect x="6" y="30" width="42" height="12" rx="6" fill="white" />
+            <rect x="6" y="50" width="26" height="8" rx="4" fill="#6F42C1" />
+          </svg>
+          <span class="tracking-widest text-xs text-vx-muted">VELTRAX</span>
+        </div>
+
+        <h1 class="mt-6 text-3xl md:text-5xl font-semibold leading-tight">From Data Silos to Unified Intelligence — Powered by Veltrax</h1>
+        <p class="mt-4 text-vx-muted max-w-3xl">See how unifying your data under one secure, local AI unlocks real‑time insights and maximizes ROI.</p>
+
+        <div class="mt-8 flex flex-wrap items-center gap-3">
+          <button id="modeCloud" class="px-4 py-2 rounded-xl border border-vx-border bg-vx-surface shadow-sm hover:border-vx-accent/50 transition">Cloud Providers</button>
+          <button id="modeUnified" class="px-4 py-2 rounded-xl border border-vx-accent bg-vx-accent text-white shadow-vx">Veltrax Unified</button>
+          <span class="text-vx-muted text-sm">Toggle to compare fragmented silos vs the unified Veltrax pipeline.</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ───────────────────── 2) MAIN: CONTROLS + VISUALIZATION ───────────────────── -->
+    <main class="max-w-7xl mx-auto px-6 md:px-10 grid grid-cols-1 lg:grid-cols-12 gap-8 mt-10 md:mt-14">
+      <!-- 2A) Controls: Data Sources & Volume -->
+      <section class="lg:col-span-4">
+        <div class="rounded-2xl border border-vx-border bg-vx-surface shadow-sm">
+          <div class="p-6 border-b border-vx-border/60">
+            <h2 class="text-xl font-semibold">Data Source Selector</h2>
+            <p class="text-sm text-vx-muted mt-1">Enable sources and set daily volume. The flow & metrics update live.</p>
+          </div>
+
+          <div class="p-4 space-y-4">
+            <!-- Source template rows -->
+            <div class="space-y-4" id="sourceList"></div>
+
+            <div class="mt-5 p-4 rounded-xl bg-black/20 border border-vx-border/60">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm text-vx-muted">Daily volume multiplier</span>
+                <span class="text-sm" id="volumeLabel">1.0×</span>
+              </div>
+              <input id="volume" type="range" min="0.5" max="5" step="0.1" value="1" class="w-full" />
+              <p class="text-xs text-vx-muted mt-2">Simulates more or fewer events per day across selected sources.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Why this matters -->
+        <div id="why" class="mt-6 rounded-2xl border border-vx-border bg-vx-surface/70 p-6 hidden">
+          <h3 class="font-semibold">Why this matters</h3>
+          <ul class="mt-2 text-sm text-vx-muted list-disc list-inside space-y-1">
+            <li>Runs on your hardware. Private. No cloud dependency.</li>
+            <li>All data, one source of truth. AI‑ready from day one.</li>
+            <li>Real‑time insights with measurable ROI.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 2B) Visualization: Silos vs Unified Pipeline -->
+      <section class="lg:col-span-8">
+        <div class="rounded-2xl border border-vx-border bg-vx-surface overflow-hidden shadow-sm">
+          <div class="p-6 border-b border-vx-border/60 flex items-center justify-between">
+            <h2 class="text-xl font-semibold" id="vizTitle">Veltrax Unified Pipeline</h2>
+            <div class="text-sm text-vx-muted" id="vizSubtitle">Ingest → Normalize → AI Models → Insights</div>
+          </div>
+
+          <!-- Canvas area -->
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="vizGrid">
+              <!-- Left: Silos -->
+              <div id="silosPanel" class="rounded-xl border border-vx-border/60 p-4 bg-black/20">
+                <div class="flex items-center justify-between">
+                  <h3 class="font-semibold">Cloud / On‑prem Silos</h3>
+                  <span class="text-xs text-vx-muted">Before</span>
+                </div>
+                
+                <svg viewBox="0 0 520 320" class="w-full mt-2">
+                  <!-- Provider icons (simplified) -->
+                  <g id="siloIcons" fill="none" stroke="#9AA0AE" stroke-width="1.2">
+                    <rect x="20"  y="24"  width="92" height="52" rx="10"/>
+                    <text x="66" y="56" text-anchor="middle" fill="#9AA0AE" font-size="12">AWS</text>
+
+                    <rect x="160" y="24"  width="92" height="52" rx="10"/>
+                    <text x="206" y="56" text-anchor="middle" fill="#9AA0AE" font-size="12">Azure</text>
+
+                    <rect x="300" y="24"  width="92" height="52" rx="10"/>
+                    <text x="346" y="56" text-anchor="middle" fill="#9AA0AE" font-size="12">GCP</text>
+
+                    <rect x="440" y="24"  width="60" height="52" rx="10"/>
+                    <text x="470" y="56" text-anchor="middle" fill="#9AA0AE" font-size="12">DB</text>
+
+                    <rect x="20"  y="112" width="92" height="52" rx="10"/>
+                    <text x="66" y="144" text-anchor="middle" fill="#9AA0AE" font-size="12">CRM</text>
+
+                    <rect x="160" y="112" width="92" height="52" rx="10"/>
+                    <text x="206" y="144" text-anchor="middle" fill="#9AA0AE" font-size="12">ERP/POS</text>
+
+                    <rect x="300" y="112" width="92" height="52" rx="10"/>
+                    <text x="346" y="144" text-anchor="middle" fill="#9AA0AE" font-size="12">Files</text>
+                  </g>
+
+                  <!-- Isolated buckets -->
+                  <g stroke="#6F42C1" stroke-opacity="0.4">
+                    <path d="M66,86 C66,120 66,180 66,220" />
+                    <path d="M206,86 C206,120 206,180 206,220" />
+                    <path d="M346,86 C346,120 346,180 346,220" />
+                    <path d="M470,86 C470,120 470,180 470,220" />
+                    <path d="M66,174 C66,200 66,230 66,260" />
+                    <path d="M206,174 C206,200 206,230 206,260" />
+                    <path d="M346,174 C346,200 346,230 346,260" />
+                  </g>
+
+                  <!-- Buckets (no unification) -->
+                  <g fill="none" stroke="#2C2F36">
+                    <rect x="20" y="220" width="92" height="66" rx="10"/>
+                    <rect x="160" y="220" width="92" height="66" rx="10"/>
+                    <rect x="300" y="220" width="92" height="66" rx="10"/>
+                    <rect x="440" y="220" width="60" height="66" rx="10"/>
+                  </g>
+
+                  <!-- Slow packets traveling downward to separate buckets -->
+                  <g id="siloPackets"></g>
+                </svg>
+              </div>
+
+              <!-- Right: Unified Veltrax pipeline -->
+              <div id="unifiedPanel" class="rounded-xl border border-vx-border/60 p-4 bg-black/20">
+                <div class="flex items-center justify-between">
+                  <h3 class="font-semibold">Veltrax Unified Pipeline</h3>
+                  <span class="text-xs text-vx-muted">After</span>
+                </div>
+
+                <svg viewBox="0 0 520 320" class="w-full mt-2">
+                  <!-- Sources into single bus -->
+                  <g fill="none" stroke="#9AA0AE" stroke-width="1.2">
+                    <rect x="20"  y="24"  width="92" height="52" rx="10"/>
+                    <text x="66" y="56" text-anchor="middle" fill="#9AA0AE" font-size="12">Sources</text>
+                    <rect x="160" y="24"  width="92" height="52" rx="10"/>
+                    <rect x="300" y="24"  width="92" height="52" rx="10"/>
+                  </g>
+
+                  <!-- Main bus and stages -->
+                  <g stroke="#6F42C1" stroke-width="2">
+                    <path id="bus" d="M66,86 C66,110 120,130 160,130 C200,130 260,130 300,130 C340,130 400,130 440,130"/>
+                  </g>
+
+                  <!-- Stages -->
+                  <g fill="none" stroke="#2C2F36" stroke-width="1.2">
+                    <rect x="140" y="150" width="80" height="36" rx="8"/>
+                    <text x="180" y="173" text-anchor="middle" fill="#9AA0AE" font-size="12">Ingest</text>
+                    <rect x="240" y="150" width="80" height="36" rx="8"/>
+                    <text x="280" y="173" text-anchor="middle" fill="#9AA0AE" font-size="12">Normalize</text>
+                    <rect x="340" y="150" width="80" height="36" rx="8"/>
+                    <text x="380" y="173" text-anchor="middle" fill="#9AA0AE" font-size="12">AI Models</text>
+                    <rect x="430" y="210" width="70" height="36" rx="8"/>
+                    <text x="465" y="233" text-anchor="middle" fill="#9AA0AE" font-size="12">Insights</text>
+                  </g>
+
+                  <!-- Output path to Insights -->
+                  <path id="toInsights" d="M440,130 C450,140 455,170 465,210" stroke="#6F42C1" stroke-width="2" fill="none"/>
+
+                  <!-- Packets on bus and to insights -->
+                  <g id="unifiedPackets"></g>
+
+                  <!-- Veltrax server representation -->
+                  <g>
+                    <rect x="12" y="200" width="110" height="90" rx="14" fill="#0f1115" stroke="#2C2F36"/>
+                    <rect x="26" y="215" width="82" height="10" rx="4" fill="#1c2030"/>
+                    <rect x="26" y="234" width="82" height="10" rx="4" fill="#1c2030"/>
+                    <rect x="26" y="253" width="82" height="10" rx="4" fill="#6F42C1"/>
+                    <text x="67" y="286" text-anchor="middle" fill="#9AA0AE" font-size="11">On‑prem Server</text>
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ─────────────────────────── 3) METRICS PANEL ─────────────────────────── -->
+    <section class="max-w-7xl mx-auto px-6 md:px-10 mt-8 mb-16">
+      <div class="rounded-2xl border border-vx-border bg-vx-surface shadow-sm">
+        <div class="p-6 border-b border-vx-border/60">
+          <h2 class="text-xl font-semibold">Processing Speed & Efficiency</h2>
+          <p class="text-sm text-vx-muted mt-1">Numbers update in real time as you change sources and volume.</p>
+        </div>
+
+        <div class="p-4 grid grid-cols-2 md:grid-cols-4 gap-4" id="metrics">
+          <!-- Metric cards populated by JS -->
+        </div>
+      </div>
+
+      <div class="mt-4 text-xs text-vx-muted">
+        <span class="opacity-80">Note:</span> These are simulated metrics based on Veltrax pipeline heuristics and are meant to illustrate relative impact between siloed vs unified architectures.
+      </div>
+    </section>
+
+    <!-- ─────────────────────────── 4) FOOTER / CTA ─────────────────────────── -->
+<footer class="border-t border-vx-border/70 py-10">
+  <div class="max-w-7xl mx-auto px-6 md:px-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+    <div>
+      <div class="flex items-center gap-3">
+        <svg width="28" height="28" viewBox="0 0 64 64" fill="none" class="shrink-0">
+          <rect x="6" y="10" width="52" height="12" rx="6" fill="white" />
+          <rect x="6" y="30" width="42" height="12" rx="6" fill="white" />
+          <rect x="6" y="50" width="26" height="8" rx="4" fill="#6F42C1" />
+        </svg>
+        <span class="tracking-widest text-xs text-vx-muted">VELTRAX</span>
+      </div>
+      <p class="text-sm text-vx-muted mt-3 max-w-xl">Local‑first. Private by default. Built for operators who need provable ROI.</p>
+      <a class="text-vx-accent hover:underline mt-2 block" href="https://www.linkedin.com/company/veltrax-technologies/?viewAsMember=true" target="_blank" rel="noopener">
+        Connect with us on LinkedIn
+      </a>
+    </div>
+
+    <div class="text-sm text-vx-muted/80">
+      <a href="#" class="hover:text-white">View Finex</a>
+      <span class="mx-2">•</span>
+      <a href="#" class="hover:text-white">View Échelon</a>
+      <span class="mx-2">•</span>
+      <a href="#" class="hover:text-white">View Verdict</a>
+    </div>
+  </div>
+</footer>
+
+    <!-- ─────────────────────────── 5) SCRIPT: STATE + LOGIC ─────────────────────────── -->
+    <script>
+      // ── 5.1) Model: sources & pipeline coefficients ─────────────────────────
+      const SOURCES = [
+        { key: 'core',  name: 'Core banking / POS / ERP', baseRps: 420,  roi: 2.0 },
+        { key: 'crm',   name: 'CRM (Salesforce / HubSpot)', baseRps: 180,  roi: 1.2 },
+        { key: 'cloud', name: 'Cloud storage (S3 / Blob / Drive)', baseRps: 240, roi: 1.1 },
+        { key: 'files', name: 'CSV / Excel / Local DB', baseRps: 120, roi: 0.9 },
+      ];
+
+      const PIPELINES = {
+        cloud:   { eff: 0.42,  batchLatency: 1800, aiLatency: 480 }, // ms
+        unified: { eff: 0.88,  batchLatency: 600,  aiLatency: 120 }, // ms
+      };
+
+      // ROI heuristic constants
+      const DOLLAR_PER_1K_ROWS = 4.2;     // revenue or cost avoidance per 1k processed rows
+      const ROI_MULTIPLIER = 1.0;         // global scaler for tuning
+
+      const state = {
+        mode: 'unified',       // 'cloud' | 'unified'
+        volume: 1.0,           // user volume multiplier
+        enabled: new Set(SOURCES.map(s => s.key)), // all on by default
+      };
+
+      // ── 5.2) DOM refs ──────────────────────────────────────────────────────
+      const $modeCloud = document.getElementById('modeCloud');
+      const $modeUnified = document.getElementById('modeUnified');
+      const $volume = document.getElementById('volume');
+      const $volumeLabel = document.getElementById('volumeLabel');
+      const $sourceList = document.getElementById('sourceList');
+      const $metrics = document.getElementById('metrics');
+      const $why = document.getElementById('why');
+
+      // Visualization packet containers
+      const $siloPackets = document.getElementById('siloPackets');
+      const $unifiedPackets = document.getElementById('unifiedPackets');
+
+      // ── 5.3) UI builders ───────────────────────────────────────────────────
+      function buildSourceRow(src) {
+        const row = document.createElement('div');
+        row.className = 'grid grid-cols-8 items-center gap-3 rounded-xl border border-vx-border/60 p-3';
+        row.innerHTML = `
+          <div class="col-span-6">
+            <label class="flex items-center gap-3">
+              <input type="checkbox" class="peer sr-only" data-key="${src.key}" checked />
+              <span class="h-5 w-9 rounded-full bg-black/30 border border-vx-border/60 relative inline-flex items-center"><i class="dot h-3 w-3 bg-white rounded-full absolute left-1 transition-transform"></i></span>
+              <span class="ml-2">${src.name}</span>
+            </label>
+          </div>
+          <div class="col-span-2 text-right">
+            <span class="text-xs text-vx-muted">~${src.baseRps.toLocaleString()} rows/s</span>
+          </div>
+        `;
+        const checkbox = row.querySelector('input');
+        const dot = row.querySelector('.dot');
+        checkbox.addEventListener('change', (e) => {
+          const key = e.target.getAttribute('data-key');
+          if (e.target.checked) state.enabled.add(key); else state.enabled.delete(key);
+          dot.style.transform = e.target.checked ? 'translateX(16px)' : 'translateX(0)';
+          render();
+        });
+        // initialize toggle knob position
+        dot.style.transform = 'translateX(16px)';
+        return row;
+      }
+
+      function buildMetrics({ rps, batchLatency, aiLatency, dailyROI }) {
+        $metrics.innerHTML = '';
+        const items = [
+          { label: 'Throughput', value: `${Math.round(rps).toLocaleString()} rows/sec` },
+          { label: 'Batch latency', value: `${Math.round(batchLatency)} ms` },
+          { label: 'AI decision latency', value: `${Math.round(aiLatency)} ms` },
+          { label: 'Projected daily ROI', value: `$${Math.round(dailyROI).toLocaleString()}` },
+        ];
+        for (const m of items) {
+          const card = document.createElement('div');
+          card.className = 'rounded-xl border border-vx-border/60 bg-black/20 p-4';
+          card.innerHTML = `<div class="text-xs text-vx-muted">${m.label}</div><div class="mt-1 text-xl font-semibold">${m.value}</div>`;
+          $metrics.appendChild(card);
+        }
+      }
+
+      // ── 5.4) Calculations ──────────────────────────────────────────────────
+      function currentTotals() {
+        const cfg = PIPELINES[state.mode];
+        const active = SOURCES.filter(s => state.enabled.has(s.key));
+        const baseRps = active.reduce((sum, s) => sum + s.baseRps, 0);
+        const rps = baseRps * state.volume * cfg.eff;
+        const aiLatency = cfg.aiLatency * (1 / cfg.eff); // faster when more efficient
+        const batchLatency = cfg.batchLatency * (1 / cfg.eff);
+        // ROI: rows/day * (dollars per 1k rows) * source ROI factors * efficiency
+        const rowsPerDay = rps * 86400; // seconds/day
+        const roiFactor = active.reduce((acc, s) => acc + s.roi, 0) / Math.max(active.length, 1);
+        const dailyROI = (rowsPerDay / 1000) * DOLLAR_PER_1K_ROWS * roiFactor * cfg.eff * ROI_MULTIPLIER;
+        return { rps, aiLatency, batchLatency, dailyROI };
+      }
+
+      // ── 5.5) Packets rendering (SVG) ───────────────────────────────────────
+      function createPacket(pathD, speedMs, cls='') {
+        const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+        g.setAttribute('class', `packet ${cls}`);
+        g.style.setProperty('--p', `'${pathD}'`);
+        g.style.setProperty('--speed', `${speedMs}ms`);
+
+        const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        c.setAttribute('r', '4');
+        c.setAttribute('fill', '#6F42C1');
+        c.setAttribute('cx', '0');
+        c.setAttribute('cy', '0');
+        c.setAttribute('class', 'animate-pulseDot');
+        g.appendChild(c);
+        return g;
+      }
+
+      function refreshPackets() {
+        // Silos: multiple slow downward paths
+        $siloPackets.innerHTML = '';
+        const siloPaths = [
+          'M66,86 C66,120 66,180 66,220',
+          'M206,86 C206,120 206,180 206,220',
+          'M346,86 C346,120 346,180 346,220',
+          'M470,86 C470,120 470,180 470,220',
+          'M66,174 C66,200 66,230 66,260',
+          'M206,174 C206,200 206,230 206,260',
+          'M346,174 C346,200 346,230 346,260',
+        ];
+        // Unified: main bus and to-insights
+        $unifiedPackets.innerHTML = '';
+        const bus = document.getElementById('bus');
+        const toInsights = document.getElementById('toInsights');
+        const busD = bus.getAttribute('d');
+        const outD = toInsights.getAttribute('d');
+
+        const { rps } = currentTotals();
+        const isUnified = state.mode === 'unified';
+        const cfg = PIPELINES[state.mode];
+
+        // Determine packet counts by throughput and mode
+        const siloCount = Math.min(12, Math.max(3, Math.round(rps / 400)));
+        const unifiedCount = Math.min(16, Math.max(4, Math.round(rps / 300)));
+
+        if (state.mode === 'cloud') {
+          for (let i = 0; i < siloCount; i++) {
+            const p = siloPaths[i % siloPaths.length];
+            const speed = 5500 + (i % 5) * 500; // slower
+            $siloPackets.appendChild(createPacket(p, speed, 'slow'));
+          }
+        } else {
+          for (let i = 0; i < unifiedCount; i++) {
+            const speed = 3000 - (i % 5) * 200; // faster
+            $unifiedPackets.appendChild(createPacket(busD, speed, 'fast'));
+            if (i % 3 === 0) $unifiedPackets.appendChild(createPacket(outD, speed + 400, 'fast'));
+          }
+        }
+      }
+
+      // ── 5.6) Render loop ───────────────────────────────────────────────────
+      function render() {
+        // Buttons styling
+        if (state.mode === 'cloud') {
+          $modeCloud.className = 'px-4 py-2 rounded-xl border border-vx-accent bg-vx-accent text-white shadow-vx';
+          $modeUnified.className = 'px-4 py-2 rounded-xl border border-vx-border bg-vx-surface shadow-sm hover:border-vx-accent/50 transition';
+          document.getElementById('vizTitle').textContent = 'Cloud / On‑prem Silos';
+          document.getElementById('vizSubtitle').textContent = 'Isolated sources, duplicate logic, slow cross‑system joins';
+          document.getElementById('why').classList.add('hidden');
+        } else {
+          $modeUnified.className = 'px-4 py-2 rounded-xl border border-vx-accent bg-vx-accent text-white shadow-vx';
+          $modeCloud.className = 'px-4 py-2 rounded-xl border border-vx-border bg-vx-surface shadow-sm hover:border-vx-accent/50 transition';
+          document.getElementById('vizTitle').textContent = 'Veltrax Unified Pipeline';
+          document.getElementById('vizSubtitle').textContent = 'Ingest → Normalize → AI Models → Insights';
+          document.getElementById('why').classList.remove('hidden');
+        }
+
+        // Metrics
+        const totals = currentTotals();
+        buildMetrics(totals);
+
+        // Packets
+        refreshPackets();
+      }
+
+      // ── 5.7) Init ─────────────────────────────────────────────────────────
+      function init() {
+        // Build sources UI
+        SOURCES.forEach(s => $sourceList.appendChild(buildSourceRow(s)));
+
+        // Bind controls
+        $modeCloud.addEventListener('click', () => { state.mode = 'cloud'; render(); });
+        $modeUnified.addEventListener('click', () => { state.mode = 'unified'; render(); });
+        $volume.addEventListener('input', (e) => {
+          state.volume = parseFloat(e.target.value);
+          $volumeLabel.textContent = `${state.volume.toFixed(1)}×`;
+          render();
+        });
+
+        render();
+      }
+
+      document.addEventListener('DOMContentLoaded', init);
+    </script>
+  </body>
+</html>
