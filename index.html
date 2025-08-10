@@ -4,9 +4,9 @@
   - Source toggles + volume slider
   - Live metrics: throughput, batch latency, AI latency, projected ROI
   - URL presets: ?product=finex|echelon|verdict&mode=cloud|unified
-  - Two detailed SVG panels with proper padding — Cloud vs Unified
+  - Two detailed SVG panels with dynamic lines — Cloud vs Unified
   - NO tooltips / NO screenshot button (per request)
-  - Clean straight lines, nothing cut off
+  - Clean straight lines, nothing cut off; lines auto‑align on resize
   - Accessible, keyboard-friendly
   - Single-file for GitHub Pages
 -->
@@ -92,9 +92,10 @@
       .panel { position:relative; }
       .panel header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
       .panel header h3 { margin:0; font-size:16px; }
-      .panel .stage { position:relative; background: #0f1219; border:1px solid var(--vx-border); border-radius:16px; height:360px; padding:20px; overflow:hidden; }
+      .stage { position:relative; background: #0f1219; border:1px solid var(--vx-border); border-radius:16px; height:420px; padding:20px; overflow:hidden; }
       .legend { display:flex; gap:10px; position:absolute; bottom:14px; left:16px; font-size:11px; color:var(--vx-muted); }
       .legend .dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+      .stage svg { position:absolute; inset:0; pointer-events:none; overflow:visible; }
 
       /* ── 1.8) Blocks & labels inside SVG areas */
       .chip { padding:8px 12px; border-radius:10px; border:1px solid var(--vx-border); background:#161a22; }
@@ -172,7 +173,7 @@
         </div>
       </section>
 
-      <!-- 3.2 Metrics -->
+      <!-- 3.2 Metrics + quick facts fill -->
       <section class="card" aria-labelledby="metrics-title">
         <h2 id="metrics-title" style="margin:0 0 8px; font-size:16px;">Processing Speed & Efficiency</h2>
         <p class="muted" style="margin-top:2px; font-size:12px;">Updates with your product preset, sources, and volume.</p>
@@ -194,10 +195,17 @@
             <div id="kpi-roi" class="kpi kpi-value">—</div>
           </div>
         </div>
+        <div class="card" style="margin-top:14px;">
+          <strong style="font-size:13px;">Unified vs siloed snapshot</strong>
+          <ul style="margin:6px 0 0; padding-left:18px; color:var(--vx-muted); font-size:13px;">
+            <li>Unified cuts duplicate ETL and streamlines governance.</li>
+            <li>Single schema drives consistent KPIs across teams.</li>
+            <li>Local processing keeps sensitive data off third‑party clouds.</li>
+          </ul>
+        </div>
         <div class="muted" style="font-size:11px; margin-top:10px;">Note: Simulated metrics illustrate the relative impact of a unified schema vs siloed feeds.</div>
       </section>
     </main>
-
     <!-- ─────────────────────────── 4) ARCHITECTURE PANELS ─────────────────────────── -->
     <section class="container" style="margin-top:24px;">
       <div class="dual">
@@ -210,40 +218,27 @@
           <div class="stage" id="stage-cloud" aria-hidden="false">
             <!-- Left column sources -->
             <div style="position:absolute; left:20px; top:24px; display:flex; flex-direction:column; gap:14px;">
-              <div class="chip light">Core Banking</div>
-              <div class="chip light">Loan Systems</div>
-              <div class="chip light">Cards & Payments</div>
-              <div class="chip light">CRM</div>
-              <div class="chip light">CSV / Excel / SFTP drops</div>
+              <div class="chip light" id="cloud-src-core">Core Banking</div>
+              <div class="chip light" id="cloud-src-loan">Loan Systems</div>
+              <div class="chip light" id="cloud-src-cards">Cards & Payments</div>
+              <div class="chip light" id="cloud-src-crm">CRM</div>
+              <div class="chip light" id="cloud-src-csv">CSV / Excel / SFTP drops</div>
             </div>
             <!-- Middle vendor silos -->
             <div style="position:absolute; left:50%; transform:translateX(-50%); top:42px; display:flex; flex-direction:column; gap:26px; width:240px; align-items:center;">
-              <div class="chip bad" style="width:160px; text-align:center;">AWS / Azure / GCP</div>
-              <div class="chip bad" style="width:160px; text-align:center;">SaaS LOS</div>
-              <div class="chip bad" style="width:160px; text-align:center;">Payments Cloud</div>
-              <div class="chip bad" style="width:160px; text-align:center;">CRM Cloud</div>
-              <div class="chip bad" style="width:160px; text-align:center;">Ad‑hoc ETL</div>
+              <div class="chip bad" style="width:160px; text-align:center;" id="cloud-silo-1">AWS / Azure / GCP</div>
+              <div class="chip bad" style="width:160px; text-align:center;" id="cloud-silo-2">SaaS LOS</div>
+              <div class="chip bad" style="width:160px; text-align:center;" id="cloud-silo-3">Payments Cloud</div>
+              <div class="chip bad" style="width:160px; text-align:center;" id="cloud-silo-4">CRM Cloud</div>
+              <div class="chip bad" style="width:160px; text-align:center;" id="cloud-silo-5">Ad‑hoc ETL</div>
             </div>
             <!-- Right Corporate HQ -->
             <div style="position:absolute; right:24px; top:110px;">
-              <div class="chip bad" style="width:160px; text-align:center; border-color: rgba(255,69,58,.8);">Corporate HQ</div>
+              <div class="chip bad" style="width:160px; text-align:center; border-color: rgba(255,69,58,.8);" id="cloud-hq">Corporate HQ</div>
             </div>
 
-            <!-- SVG lines (red) → clean, no cutoffs -->
-            <svg viewBox="0 0 1000 360" preserveAspectRatio="none" style="position:absolute; inset:0;">
-              <!-- sources → vendor silos -->
-              <line x1="170" y1="52" x2="500" y2="72" stroke="var(--vx-danger)" stroke-width="2"/>
-              <line x1="170" y1="96" x2="500" y2="122" stroke="var(--vx-danger)" stroke-width="2"/>
-              <line x1="170" y1="140" x2="500" y2="172" stroke="var(--vx-danger)" stroke-width="2"/>
-              <line x1="170" y1="184" x2="500" y2="222" stroke="var(--vx-danger)" stroke-width="2"/>
-              <line x1="170" y1="228" x2="500" y2="272" stroke="var(--vx-danger)" stroke-width="2"/>
-              <!-- vendor silos → HQ -->
-              <line x1="620" y1="72" x2="860" y2="168" stroke="var(--vx-danger)" stroke-width="2"/>
-              <line x1="620" y1="122" x2="860" y2="168" stroke="var(--vx-danger)" stroke-width="2"/>
-              <line x1="620" y1="172" x2="860" y2="168" stroke="var(--vx-danger)" stroke-width="2"/>
-              <line x1="620" y1="222" x2="860" y2="168" stroke="var(--vx-danger)" stroke-width="2"/>
-              <line x1="620" y1="272" x2="860" y2="168" stroke="var(--vx-danger)" stroke-width="2"/>
-            </svg>
+            <!-- SVG lines (red) → dynamically drawn -->
+            <svg id="svg-cloud"></svg>
 
             <!-- Cloud badges -->
             <div class="legend">
@@ -263,35 +258,26 @@
           <div class="stage" id="stage-unified" aria-hidden="false">
             <!-- Left column sources (same labels for contrast) -->
             <div style="position:absolute; left:20px; top:24px; display:flex; flex-direction:column; gap:14px;">
-              <div class="chip light">Core Banking</div>
-              <div class="chip light">Loan Systems</div>
-              <div class="chip light">Cards & Payments</div>
-              <div class="chip light">CRM</div>
-              <div class="chip light">CSV / Excel / SFTP drops</div>
+              <div class="chip light" id="uni-src-core">Core Banking</div>
+              <div class="chip light" id="uni-src-loan">Loan Systems</div>
+              <div class="chip light" id="uni-src-cards">Cards & Payments</div>
+              <div class="chip light" id="uni-src-crm">CRM</div>
+              <div class="chip light" id="uni-src-csv">CSV / Excel / SFTP drops</div>
             </div>
 
             <!-- Center: Veltrax (local & safe) -->
-            <div style="position:absolute; left:50%; transform:translateX(-50%); top:120px; display:flex; align-items:center; gap:10px;">
+            <div style="position:absolute; left:50%; transform:translateX(-50%); top:120px; display:flex; align-items:center; gap:10px;" id="uni-veltrax-wrap">
               <div style="width:18px; height:18px; background:var(--vx-good); border-radius:50%; box-shadow: 0 0 0 6px rgba(76,255,136,.15);"></div>
-              <div class="chip good" style="width:180px; text-align:center;">Veltrax (local)</div>
+              <div class="chip good" style="width:180px; text-align:center;" id="uni-veltrax">Veltrax (local)</div>
             </div>
 
             <!-- Right: single lane to HQ -->
             <div style="position:absolute; right:24px; top:146px;">
-              <div class="chip good" style="width:160px; text-align:center; border-color: rgba(76,255,136,.85);">Corporate HQ</div>
+              <div class="chip good" style="width:160px; text-align:center; border-color: rgba(76,255,136,.85);" id="uni-hq">Corporate HQ</div>
             </div>
 
-            <!-- SVG lines (purple → Veltrax; green → HQ) -->
-            <svg viewBox="0 0 1000 360" preserveAspectRatio="none" style="position:absolute; inset:0;">
-              <!-- sources → Veltrax -->
-              <line x1="170" y1="52" x2="500" y2="168" stroke="var(--vx-primary)" stroke-width="3"/>
-              <line x1="170" y1="96" x2="500" y2="168" stroke="var(--vx-primary)" stroke-width="3"/>
-              <line x1="170" y1="140" x2="500" y2="168" stroke="var(--vx-primary)" stroke-width="3"/>
-              <line x1="170" y1="184" x2="500" y2="168" stroke="var(--vx-primary)" stroke-width="3"/>
-              <line x1="170" y1="228" x2="500" y2="168" stroke="var(--vx-primary)" stroke-width="3"/>
-              <!-- Veltrax → HQ (single thick lane) -->
-              <line x1="580" y1="168" x2="860" y2="168" stroke="var(--vx-good)" stroke-width="6"/>
-            </svg>
+            <!-- SVG lines → dynamically drawn -->
+            <svg id="svg-unified"></svg>
 
             <div class="legend">
               <span class="chip good">Unified stream</span>
@@ -320,7 +306,6 @@
         </div>
       </div>
     </footer>
-
     <!-- ─────────────────────────── 6) DATA & LOGIC ─────────────────────────── -->
     <script>
       // ── 6.1) Product presets (sources + base speeds) — rough, demo‑friendly numbers
@@ -450,6 +435,7 @@
           uniBtn.classList.remove('tabu'); uniBtn.classList.add('primary'); uniBtn.setAttribute('aria-selected', 'true');
           cloudBtn.classList.remove('primary'); cloudBtn.classList.add('tabu'); cloudBtn.setAttribute('aria-selected', 'false');
         }
+        drawAllLines();
         updateKpis();
       }
 
@@ -461,9 +447,71 @@
         renderSources();
         updateKpis();
         writeUrl();
+        setTimeout(drawAllLines, 0); // after layout
+      }
+      // ── 6.9) SVG helpers to draw lines to the actual element centers
+      function centerIn(el, root){
+        const eb = el.getBoundingClientRect();
+        const rb = root.getBoundingClientRect();
+        return { x: eb.left - rb.left + eb.width/2, y: eb.top - rb.top + eb.height/2 };
+      }
+      function drawLine(svg, a, b, color, width){
+        const p = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        p.setAttribute('x1', a.x); p.setAttribute('y1', a.y);
+        p.setAttribute('x2', b.x); p.setAttribute('y2', b.y);
+        p.setAttribute('stroke', color); p.setAttribute('stroke-width', width);
+        p.setAttribute('stroke-linecap', 'round');
+        svg.appendChild(p);
+      }
+      function clearSvg(svg){ while (svg.firstChild) svg.removeChild(svg.firstChild); }
+
+      function drawCloud(){
+        const stage = $('#stage-cloud');
+        const svg = $('#svg-cloud');
+        clearSvg(svg);
+        svg.setAttribute('viewBox', `0 0 ${stage.clientWidth} ${stage.clientHeight}`);
+        svg.setAttribute('width', stage.clientWidth);
+        svg.setAttribute('height', stage.clientHeight);
+
+        const srcIds = ['cloud-src-core','cloud-src-loan','cloud-src-cards','cloud-src-crm','cloud-src-csv'];
+        const siloIds = ['cloud-silo-1','cloud-silo-2','cloud-silo-3','cloud-silo-4','cloud-silo-5'];
+        const hq = $('#cloud-hq');
+
+        // sources → matching silos
+        for (let i=0;i<srcIds.length;i++){
+          const s = $('#'+srcIds[i]);
+          const t = $('#'+siloIds[i]);
+          drawLine(svg, centerIn(s, stage), centerIn(t, stage), getComputedStyle(document.documentElement).getPropertyValue('--vx-danger'), 2);
+        }
+        // silos → HQ
+        siloIds.forEach(id => {
+          drawLine(svg, centerIn($('#'+id), stage), centerIn(hq, stage), getComputedStyle(document.documentElement).getPropertyValue('--vx-danger'), 2);
+        });
       }
 
-      // ── 6.9) Init
+      function drawUnified(){
+        const stage = $('#stage-unified');
+        const svg = $('#svg-unified');
+        clearSvg(svg);
+        svg.setAttribute('viewBox', `0 0 ${stage.clientWidth} ${stage.clientHeight}`);
+        svg.setAttribute('width', stage.clientWidth);
+        svg.setAttribute('height', stage.clientHeight);
+
+        const srcIds = ['uni-src-core','uni-src-loan','uni-src-cards','uni-src-crm','uni-src-csv'];
+        const vx = $('#uni-veltrax');
+        const hq = $('#uni-hq');
+        const colorV = getComputedStyle(document.documentElement).getPropertyValue('--vx-primary');
+        const colorH = getComputedStyle(document.documentElement).getPropertyValue('--vx-good');
+
+        srcIds.forEach(id => {
+          drawLine(svg, centerIn($('#'+id), stage), centerIn(vx, stage), colorV, 3);
+        });
+        drawLine(svg, centerIn(vx, stage), centerIn(hq, stage), colorH, 6);
+      }
+
+      function drawAllLines(){ drawCloud(); drawUnified(); }
+
+      // ── 6.10) Init
       function init(){
         readUrl();
         // bind UI
@@ -483,6 +531,12 @@
         // default product & mode
         setProduct(state.product);
         setMode(state.mode);
+
+        // draw lines on load & on resize
+        window.addEventListener('resize', drawAllLines);
+        // redraw once fonts settle
+        setTimeout(drawAllLines, 50);
+        setTimeout(drawAllLines, 250);
       }
 
       document.addEventListener('DOMContentLoaded', init);
