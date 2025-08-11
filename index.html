@@ -1,14 +1,13 @@
 <!--
-  Veltrax — Silos vs Unified Simulator (Full Demo)
+  Veltrax — Silos vs Unified Simulator (Top‑down V2)
+  - Vertical flow (top → middle → bottom) so lines read upright and scale better on mobile
   - Product presets: Finex (Banking), Échelon (Retail), Verdict (Legal)
   - Source toggles + volume slider
   - Live metrics: throughput, batch latency, AI latency, projected ROI
   - URL presets: ?product=finex|echelon|verdict&mode=cloud|unified
   - Two detailed SVG panels with dynamic lines — Cloud vs Unified
-  - NO tooltips / NO screenshot button (per request)
-  - Clean straight lines, nothing cut off; lines auto‑align on resize
-  - Accessible, keyboard-friendly
-  - Single-file for GitHub Pages
+  - Clean paths; lines anchor to element edges; auto‑realign on resize
+  - Accessible, keyboard‑friendly; single file for GitHub Pages
 -->
 
 <!DOCTYPE html>
@@ -86,19 +85,29 @@
       .kpi-label { color: var(--vx-muted); font-size:12px; margin-bottom:6px; }
       .kpi-value { font-size:18px; font-weight:600; }
 
-      /* ── 1.7) Dual architecture panels */
+      /* ── 1.7) Dual architecture panels (top‑down layout) */
       .dual { display:grid; gap:16px; }
       @media (min-width: 1100px){ .dual { grid-template-columns: 1fr 1fr; } }
       .panel { position:relative; }
       .panel header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
       .panel header h3 { margin:0; font-size:16px; }
-      .stage { position:relative; background: #0f1219; border:1px solid var(--vx-border); border-radius:16px; height:420px; padding:20px; overflow:hidden; }
+      .stage { position:relative; background: #0f1219; border:1px solid var(--vx-border); border-radius:16px; height:520px; padding:20px; overflow:visible; }
       .legend { display:flex; gap:10px; position:absolute; bottom:14px; left:16px; font-size:11px; color:var(--vx-muted); }
       .stage svg { position:absolute; inset:0; pointer-events:none; overflow:visible; }
-      .chip { padding:8px 12px; border-radius:10px; border:1px solid var(--vx-border); background:#161a22; }
+
+      /* ── 1.8) Rows inside the stage */
+      .row-top, .row-mid { position:absolute; left:20px; right:20px; display:flex; gap:12px; flex-wrap:wrap; justify-content:space-between; }
+      .row-top { top:20px; }
+      .row-mid { top:210px; justify-content:center; }
+      .row-bottom { position:absolute; left:50%; transform:translateX(-50%); bottom:64px; }
+
+      /* ── 1.9) Blocks */
+      .chip { padding:8px 12px; border-radius:10px; border:1px solid var(--vx-border); background:#161a22; white-space:nowrap; }
       .chip.light { background:#1b1f27; color:#cfd2da; }
-      .chip.bad { border-color: rgba(255,69,58,.5); }
-      .chip.good { border-color: rgba(76,255,136,.5); }
+      .chip.bad { border-color: rgba(255,69,58,.55); }
+      .chip.good { border-color: rgba(76,255,136,.55); }
+
+      /* ── 1.10) Footer */
       footer { border-top:1px solid var(--vx-border); margin-top:40px; padding:24px 0 48px; color:var(--vx-muted); }
       .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
     </style>
@@ -116,7 +125,7 @@
         <span class="muted" style="letter-spacing:.2em; font-size:11px;">VELTRAX</span>
       </div>
       <h1>From Data Silos to Unified Intelligence — Powered by Veltrax</h1>
-      <p>Unify every source into one secure, local model. See how the architecture flips from fragmented risk to real-time decisions.</p>
+      <p>Unify every source into one secure, local model. See how the architecture flips from fragmented risk to real‑time decisions.</p>
 
       <div class="row" style="margin-top:12px; grid-template-columns:auto 1fr auto; align-items:center; gap:10px;">
         <div>
@@ -203,33 +212,31 @@
     <!-- ─────────────────────────── 4) ARCHITECTURE PANELS ─────────────────────────── -->
     <section class="container" style="margin-top:24px;">
       <div class="dual">
-        <!-- 4.1 Cloud / Siloed -->
+        <!-- 4.1 Cloud / Siloed (top‑down) -->
         <article id="panel-cloud" class="panel card" aria-labelledby="cloud-title">
           <header>
             <h3 id="cloud-title">Cloud / On‑prem Silos — Limited Oversight</h3>
             <button class="btn" data-focus="cloud">Focus this view</button>
           </header>
           <div class="stage" id="stage-cloud" aria-hidden="false">
-            <!-- Left column sources -->
-            <div style="position:absolute; left:20px; top:24px; display:flex; flex-direction:column; gap:14px;">
+            <!-- Top row sources -->
+            <div class="row-top" id="cloud-row-top">
               <div class="chip light" id="cloud-src-core">Core Banking</div>
               <div class="chip light" id="cloud-src-loan">Loan Systems</div>
               <div class="chip light" id="cloud-src-cards">Cards & Payments</div>
               <div class="chip light" id="cloud-src-crm">CRM</div>
               <div class="chip light" id="cloud-src-csv">CSV / Excel / SFTP drops</div>
             </div>
-            <!-- Middle vendor silos -->
-            <div style="position:absolute; left:50%; transform:translateX(-50%); top:42px; display:flex; flex-direction:column; gap:26px; width:240px; align-items:center;">
-              <div class="chip bad" style="width:160px; text-align:center;" id="cloud-silo-1">AWS / Azure / GCP</div>
-              <div class="chip bad" style="width:160px; text-align:center;" id="cloud-silo-2">SaaS LOS</div>
-              <div class="chip bad" style="width:160px; text-align:center;" id="cloud-silo-3">Payments Cloud</div>
-              <div class="chip bad" style="width:160px; text-align:center;" id="cloud-silo-4">CRM Cloud</div>
-              <div class="chip bad" style="width:160px; text-align:center;" id="cloud-silo-5">Ad‑hoc ETL</div>
+            <!-- Mid row silos -->
+            <div class="row-mid" id="cloud-row-mid">
+              <div class="chip bad" id="cloud-silo-1">AWS / Azure / GCP</div>
+              <div class="chip bad" id="cloud-silo-2">SaaS LOS</div>
+              <div class="chip bad" id="cloud-silo-3">Payments Cloud</div>
+              <div class="chip bad" id="cloud-silo-4">CRM Cloud</div>
+              <div class="chip bad" id="cloud-silo-5">Ad‑hoc ETL</div>
             </div>
-            <!-- Right Corporate HQ -->
-            <div style="position:absolute; right:24px; top:110px;">
-              <div class="chip bad" style="width:160px; text-align:center; border-color: rgba(255,69,58,.8);" id="cloud-hq">Corporate HQ</div>
-            </div>
+            <!-- Bottom HQ -->
+            <div class="row-bottom"><div class="chip bad" id="cloud-hq" style="width:180px; text-align:center; border-color: rgba(255,69,58,.8);">Corporate HQ</div></div>
 
             <!-- SVG lines (red) → dynamically drawn -->
             <svg id="svg-cloud"></svg>
@@ -243,15 +250,15 @@
           </div>
         </article>
 
-        <!-- 4.2 Unified -->
+        <!-- 4.2 Unified (top‑down) -->
         <article id="panel-unified" class="panel card" aria-labelledby="unified-title">
           <header>
             <h3 id="unified-title">Veltrax Unified — One Model, Real‑time Decisions</h3>
             <button class="btn" data-focus="unified">Focus this view</button>
           </header>
           <div class="stage" id="stage-unified" aria-hidden="false">
-            <!-- Left column sources (same labels for contrast) -->
-            <div style="position:absolute; left:20px; top:24px; display:flex; flex-direction:column; gap:14px;">
+            <!-- Top row sources (same labels for contrast) -->
+            <div class="row-top" id="uni-row-top">
               <div class="chip light" id="uni-src-core">Core Banking</div>
               <div class="chip light" id="uni-src-loan">Loan Systems</div>
               <div class="chip light" id="uni-src-cards">Cards & Payments</div>
@@ -259,16 +266,16 @@
               <div class="chip light" id="uni-src-csv">CSV / Excel / SFTP drops</div>
             </div>
 
-            <!-- Center: Veltrax (local & safe) -->
-            <div style="position:absolute; left:50%; transform:translateX(-50%); top:120px; display:flex; align-items:center; gap:10px;" id="uni-veltrax-wrap">
-              <div style="width:18px; height:18px; background:var(--vx-good); border-radius:50%; box-shadow: 0 0 0 6px rgba(76,255,136,.15);"></div>
-              <div class="chip good" style="width:180px; text-align:center;" id="uni-veltrax">Veltrax (local)</div>
+            <!-- Mid: Veltrax (local & safe) -->
+            <div class="row-mid" id="uni-row-mid">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:18px; height:18px; background:var(--vx-good); border-radius:50%; box-shadow: 0 0 0 6px rgba(76,255,136,.15);"></div>
+                <div class="chip good" id="uni-veltrax" style="width:200px; text-align:center;">Veltrax (local)</div>
+              </div>
             </div>
 
-            <!-- Right: single lane to HQ -->
-            <div style="position:absolute; right:24px; top:146px;">
-              <div class="chip good" style="width:160px; text-align:center; border-color: rgba(76,255,136,.85);" id="uni-hq">Corporate HQ</div>
-            </div>
+            <!-- Bottom: single lane to HQ -->
+            <div class="row-bottom"><div class="chip good" id="uni-hq" style="width:180px; text-align:center; border-color: rgba(76,255,136,.85);">Corporate HQ</div></div>
 
             <!-- SVG lines → dynamically drawn -->
             <svg id="svg-unified"></svg>
@@ -303,7 +310,7 @@
 
     <!-- ─────────────────────────── 6) DATA & LOGIC ─────────────────────────── -->
     <script>
-      // ── 6.1) Product presets (sources + base speeds) — rough, demo‑friendly numbers
+      // ── 6.1) Product presets (sources + base speeds) — demo‑friendly numbers
       const PRESETS = {
         finex: {
           name: 'Finex (Banking)',
@@ -314,7 +321,7 @@
             { id: 'crm', label: 'CRM (Salesforce)', base: 120 },
             { id: 'csv', label: 'CSV / Excel / SFTP drops', base: 90 },
           ],
-          batchMs: 680, aiMs: 140, roiFactor: 31
+          batchMs: 680, aiMs: 140, roiFactor: 24
         },
         echelon: {
           name: 'Échelon (Retail)',
@@ -325,7 +332,7 @@
             { id: 'crm', label: 'CRM / CDP', base: 150 },
             { id: 'csv', label: 'CSV / Excel / SFTP drops', base: 110 },
           ],
-          batchMs: 720, aiMs: 160, roiFactor: 24
+          batchMs: 720, aiMs: 160, roiFactor: 18
         },
         verdict: {
           name: 'Verdict (Legal)',
@@ -336,7 +343,7 @@
             { id: 'crm', label: 'CRM / Matters', base: 120 },
             { id: 'csv', label: 'CSV / Excel / SFTP drops', base: 60 },
           ],
-          batchMs: 760, aiMs: 180, roiFactor: 18
+          batchMs: 760, aiMs: 180, roiFactor: 12
         }
       };
 
@@ -369,7 +376,7 @@
         history.replaceState(null, '', u.toString());
       }
 
-      // ── 6.5) Render source list
+      // ── 6.5) Render source list (with delegation)
       function renderSources(){
         const cfg = PRESETS[state.product];
         const host = $('#source-list');
@@ -387,15 +394,15 @@
           `;
           host.appendChild(row);
         });
-        host.addEventListener('change', e => {
+        host.onchange = e => {
           const cb = e.target.closest('input[type=checkbox]');
           if (!cb) return;
           if (cb.checked) state.enabled.add(cb.dataset.id); else state.enabled.delete(cb.dataset.id);
           updateKpis();
-        }); // no once:true — keep live
+        };
       }
 
-      // ── 6.6) Metrics calc (toy but consistent)
+      // ── 6.6) Metrics calc (consistent & conservative)
       function updateKpis(){
         const cfg = PRESETS[state.product];
         const rows = cfg.sources
@@ -404,11 +411,12 @@
         const throughput = rows; // rows/sec (sim)
         const batch = Math.max(240, cfg.batchMs - (state.mode === 'unified' ? 120 : 0));
         const ai = Math.max(90, cfg.aiMs - (state.mode === 'unified' ? 40 : 0));
-        const roi = Math.max(120000, rows * cfg.roiFactor * (state.mode === 'unified' ? 1.6 : 1));
+        const baseRoi = rows * cfg.roiFactor; // normalized per product
+        const roi = baseRoi * (state.mode === 'unified' ? 1.35 : 1.0); // modest uplift
         $('#kpi-throughput').textContent = `${fmt(throughput)} rows/sec`;
         $('#kpi-batch').textContent = `${fmt(batch)} ms`;
         $('#kpi-ai').textContent = `${fmt(ai)} ms`;
-        $('#kpi-roi').textContent = fmtMoney(roi);
+        $('#kpi-roi').textContent = fmtMoney(Math.max(90000, roi));
       }
 
       // ── 6.7) Toggle mode → highlight one panel & dim the other
@@ -441,98 +449,104 @@
         renderSources();
         updateKpis();
         writeUrl();
-        setTimeout(drawAllLines, 0);
+        setTimeout(drawAllLines, 0); // after layout settles
       }
 
-      // ── 6.9) SVG helpers — straight, edge-anchored lines
+      // ── 6.9) SVG helpers (edge‑anchored, smooth vertical curves)
       const NS = 'http://www.w3.org/2000/svg';
-      function anchor(el, root, side = 'center'){
+      function anchor(el, root, pos = 'center'){
         const eb = el.getBoundingClientRect();
         const rb = root.getBoundingClientRect();
-        const midY = eb.top - rb.top + eb.height / 2;
-        if (side === 'left')  return { x: eb.left - rb.left + 1,           y: midY };
-        if (side === 'right') return { x: eb.left - rb.left + eb.width - 1, y: midY };
-        return { x: eb.left - rb.left + eb.width / 2, y: midY };
+        const cx = eb.left - rb.left + eb.width / 2;
+        if (pos === 'top')    return { x: cx, y: eb.top - rb.top };
+        if (pos === 'bottom') return { x: cx, y: eb.top - rb.top + eb.height };
+        if (pos === 'left')   return { x: eb.left - rb.left, y: eb.top - rb.top + eb.height/2 };
+        if (pos === 'right')  return { x: eb.left - rb.left + eb.width, y: eb.top - rb.top + eb.height/2 };
+        return { x: cx, y: eb.top - rb.top + eb.height/2 };
       }
-      function makeSvg(stage){
-        const svg = stage.querySelector('svg');
-        while (svg.firstChild) svg.removeChild(svg.firstChild);
-        svg.setAttribute('width', stage.clientWidth);
-        svg.setAttribute('height', stage.clientHeight);
-        svg.setAttribute('viewBox', `0 0 ${stage.clientWidth} ${stage.clientHeight}`);
-        svg.setAttribute('shape-rendering', 'geometricPrecision');
-        return svg;
+      function drawPath(svg, a, b, color, width, curv=60){
+        const path = document.createElementNS(NS, 'path');
+        const d = `M ${a.x} ${a.y} C ${a.x} ${a.y+curv}, ${b.x} ${b.y-curv}, ${b.x} ${b.y}`;
+        path.setAttribute('d', d);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', color);
+        path.setAttribute('stroke-width', width);
+        path.setAttribute('stroke-linecap', 'round');
+        path.setAttribute('vector-effect', 'non-scaling-stroke');
+        svg.appendChild(path);
       }
-      function line(svg, a, b, color, width){
-        const L = document.createElementNS(NS, 'line');
-        L.setAttribute('x1', a.x); L.setAttribute('y1', a.y);
-        L.setAttribute('x2', b.x); L.setAttribute('y2', b.y);
-        L.setAttribute('stroke', color.trim());
-        L.setAttribute('stroke-width', width);
-        L.setAttribute('stroke-linecap', 'round');
-        svg.appendChild(L);
-      }
+      function clearSvg(svg){ while (svg.firstChild) svg.removeChild(svg.firstChild); }
 
-      // ── 6.10) Draw the two panels
       function drawCloud(){
         const stage = $('#stage-cloud');
-        const svg = makeSvg(stage);
-        const red = getComputedStyle(document.documentElement).getPropertyValue('--vx-danger');
-        const srcIds = ['cloud-src-core','cloud-src-loan','cloud-src-cards','cloud-src-crm','cloud-src-csv'];
+        const svg = $('#svg-cloud');
+        clearSvg(svg);
+        svg.setAttribute('viewBox', `0 0 ${stage.clientWidth} ${stage.clientHeight}`);
+        svg.setAttribute('width', stage.clientWidth);
+        svg.setAttribute('height', stage.clientHeight);
+
+        const srcIds  = ['cloud-src-core','cloud-src-loan','cloud-src-cards','cloud-src-crm','cloud-src-csv'];
         const siloIds = ['cloud-silo-1','cloud-silo-2','cloud-silo-3','cloud-silo-4','cloud-silo-5'];
         const hq = $('#cloud-hq');
-        // sources → matching silos
+        const red = getComputedStyle(document.documentElement).getPropertyValue('--vx-danger').trim();
+
+        // sources → matching silos (top → mid)
         for (let i=0;i<srcIds.length;i++){
-          const s = document.getElementById(srcIds[i]);
-          const t = document.getElementById(siloIds[i]);
-          if (s && t) line(svg, anchor(s, stage, 'right'), anchor(t, stage, 'left'), red, 2);
+          const s = $('#'+srcIds[i]);
+          const t = $('#'+siloIds[i]);
+          drawPath(svg, anchor(s, stage, 'bottom'), anchor(t, stage, 'top'), red, 2.5, 70);
         }
-        // silos → HQ
+        // silos → HQ (mid → bottom)
         siloIds.forEach(id => {
-          const silo = document.getElementById(id);
-          if (silo && hq) line(svg, anchor(silo, stage, 'right'), anchor(hq, stage, 'left'), red, 2);
+          drawPath(svg, anchor($('#'+id), stage, 'bottom'), anchor(hq, stage, 'top'), red, 2.5, 80);
         });
       }
 
       function drawUnified(){
         const stage = $('#stage-unified');
-        const svg = makeSvg(stage);
-        const blue = getComputedStyle(document.documentElement).getPropertyValue('--vx-primary');
-        const green = getComputedStyle(document.documentElement).getPropertyValue('--vx-good');
+        const svg = $('#svg-unified');
+        clearSvg(svg);
+        svg.setAttribute('viewBox', `0 0 ${stage.clientWidth} ${stage.clientHeight}`);
+        svg.setAttribute('width', stage.clientWidth);
+        svg.setAttribute('height', stage.clientHeight);
+
         const srcIds = ['uni-src-core','uni-src-loan','uni-src-cards','uni-src-crm','uni-src-csv'];
         const vx = $('#uni-veltrax');
         const hq = $('#uni-hq');
-        // sources → Veltrax
+        const blue = getComputedStyle(document.documentElement).getPropertyValue('--vx-primary').trim();
+        const green = getComputedStyle(document.documentElement).getPropertyValue('--vx-good').trim();
+
+        // sources → Veltrax (top → mid)
         srcIds.forEach(id => {
-          const s = document.getElementById(id);
-          if (s && vx) line(svg, anchor(s, stage, 'right'), anchor(vx, stage, 'left'), blue, 3);
+          drawPath(svg, anchor($('#'+id), stage, 'bottom'), anchor(vx, stage, 'top'), blue, 3, 70);
         });
-        // Veltrax → HQ
-        if (vx && hq) line(svg, anchor(vx, stage, 'right'), anchor(hq, stage, 'left'), green, 6);
+        // Veltrax → HQ (mid → bottom)
+        drawPath(svg, anchor(vx, stage, 'bottom'), anchor(hq, stage, 'top'), green, 6, 90);
       }
 
       function drawAllLines(){ drawCloud(); drawUnified(); }
 
-      // ── 6.11) Init
+      // ── 6.10) Init
       function init(){
         readUrl();
         // bind UI
-        document.getElementById('tab-cloud').addEventListener('click', () => setMode('cloud'));
-        document.getElementById('tab-unified').addEventListener('click', () => setMode('unified'));
+        $('#tab-cloud').addEventListener('click', () => setMode('cloud'));
+        $('#tab-unified').addEventListener('click', () => setMode('unified'));
         $$('[data-focus]').forEach(btn => btn.addEventListener('click', e => setMode(e.currentTarget.dataset.focus)));
-        document.getElementById('copy-url').addEventListener('click', () => {
+        $('#copy-url').addEventListener('click', () => {
           writeUrl();
           navigator.clipboard.writeText(location.href).then(()=>{
-            const b = document.getElementById('copy-url');
+            const b = $('#copy-url');
             b.textContent = 'Copied!';
             setTimeout(()=> b.textContent = 'Copy link', 1200);
           });
         });
         $$('.pill').forEach(p => p.addEventListener('click', e => setProduct(e.currentTarget.dataset.preset)));
-        document.getElementById('vol').addEventListener('input', e => { state.volume = parseFloat(e.target.value); updateKpis(); });
+        $('#vol').addEventListener('input', e => { state.volume = parseFloat(e.target.value); updateKpis(); });
         // default product & mode
         setProduct(state.product);
         setMode(state.mode);
+
         // draw lines on load & on resize
         window.addEventListener('resize', drawAllLines);
         setTimeout(drawAllLines, 50);
